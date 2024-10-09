@@ -1,10 +1,13 @@
 import pygame
 from circleshape import *
-from constants import PLAYER_RADIUS, SCREEN_HEIGHT, SCREEN_WIDTH, PLAYER_TURN_SPEED
+from constants import PLAYER_RADIUS, SCREEN_HEIGHT, SCREEN_WIDTH, PLAYER_TURN_SPEED, PLAYER_SPEED
 
-class Player(CircleShape):
+
+
+class Player(CircleShape, pygame.sprite.Sprite):
     def __init__(self, x, y):
-        super().__init__(x, y, PLAYER_RADIUS)
+        CircleShape.__init__(self,x, y, PLAYER_RADIUS)
+        pygame.sprite.Sprite.__init__(self)
         self.rotation = 0
 
     # in the player class
@@ -30,13 +33,24 @@ class Player(CircleShape):
         if keys[pygame.K_a]:
             self.rotate(-dt)
         if keys[pygame.K_d]:
-            self.rotate(dt)   
+            self.rotate(dt)
+        if keys[pygame.K_w]:
+            self.move(dt)
+        if keys[pygame.K_s]:
+            self.move(-dt)    
+
+    def move(self, dt):
+        forward = pygame.Vector2(0, 1).rotate(self.rotation)
+        self.position += forward * PLAYER_SPEED * dt
 
 def main():
     pygame.init()
     screen= pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT)) #set display
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     clock = pygame.time.Clock()
+    updateable = pygame.sprite.Group()
+    drawable = pygame.sprite.Group()
+    Player.containers = (updateable, drawable)
+    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
    #Game loop
     running = True
@@ -50,11 +64,14 @@ def main():
         
         screen.fill((0,0,0))
 
-        player.draw(screen)
+        updateable.update(dt)
+
+        for sprite in drawable:
+            sprite.draw(screen)
 
         pygame.display.flip()
 
-        player.update(dt)
+        
 
     pygame.quit()
 
